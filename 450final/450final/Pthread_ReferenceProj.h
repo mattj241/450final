@@ -34,3 +34,24 @@
 //	pthread_exit(NULL);
 //	return 0;
 //}
+
+
+//void wait(semaphore * inputSemaphore, pthread_t * thread)
+//{
+//	inputSemaphore->value--;
+//	if (inputSemaphore->value < 0)
+//	{
+//		//inputSemaphore->list.add(process)
+//		//pthreadCancelableWait(thread);
+//	}
+//}
+//
+//void signal(semaphore * inputSemaphore)
+//{
+//	inputSemaphore->value++;
+//	if (inputSemaphore->value <= 0)
+//	{
+//		//inputSemaphore->list.add(process)
+//
+//	}
+//}
