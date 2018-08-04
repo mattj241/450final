@@ -6,6 +6,7 @@
 using namespace std;
 
 #define NUM_BUFFERS 7
+int buffers[NUM_BUFFERS];
 
 /*
 Good viewing material:
@@ -46,12 +47,9 @@ produce the item in next process
 . . .
 } while (true);*/
 
-int buffers[NUM_BUFFERS];
 
 pthread_t thread1, thread2;
 sem_t mutex, empty, full;
-
-//int sem_init(*mutex, NULL, 1);
 
 /*void fillBuffers()
 {
@@ -63,6 +61,10 @@ sem_t mutex, empty, full;
 
 int main()
 {
+	sem_init(&mutex, 0, 1);
+	sem_init(&empty, 0, NUM_BUFFERS);
+	sem_init(&full, 0, 0);
+
 	system("pause");
 	return 0;
 } 
