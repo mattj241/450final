@@ -1,4 +1,5 @@
 //CIS 450 final project - Matt London, Ismaeel Varis
+//#define HAVE_STRUCT_TIMESPEC
 #include <pthread.h>
 #include <semaphore.h>
 #include <iostream>
@@ -49,21 +50,76 @@ produce the item in next process
 
 
 pthread_t thread1, thread2;
-sem_t mutex, empty, full;
+pthread_mutex_t mutex;
+sem_t empty, full;
+int sizeTracker;
 
-/*void fillBuffers()
+void insertIntoBuffer(int value)
 {
-	for (int i = 0; i < NUM_BUFFERS; i++)
+	if (sizeTracker < NUM_BUFFERS)
 	{
-		buffers[i] = rand() % 100;
+		buffers[sizeTracker] = value;
+		sizeTracker++;
 	}
-}*/
+	else
+	{
+		cout << "buffer full" << endl;
+	}
+}
+
+void removeFromBuffer(int value)
+{
+	if (sizeTracker > 0)
+	{
+		buffers[sizeTracker] = -1;
+		--sizeTracker;
+	}
+	else
+	{
+		cout << "buffer empty" << endl;
+	}
+}
+
+void * Produce(pthread_t * thread)
+{
+	int item = rand() % 100;
+	do 
+	{
+		//produce stuff
+		sem_wait(&empty);
+		pthread_mutex_lock(&mutex);
+		insertIntoBuffer(item);
+		cout << "Produced: " << item << " in thread" << *((int*)(thread));
+		pthread_mutex_unlock(&mutex);
+		sem_post(&full);
+		
+	} while (true); 
+}
+
+void * Consume(pthread_t * thread)
+{
+	int item = rand() % 100;
+	do
+	{
+		//produce stuff
+		sem_wait(&full);
+		pthread_mutex_lock(&mutex);
+		insertIntoBuffer(item);
+		cout << "Consumed: " << item << " in thread" << *((int*)(thread));
+		pthread_mutex_unlock(&mutex);
+		sem_post(&empty);
+
+	} while (true);
+}
 
 int main()
 {
-	sem_init(&mutex, 0, 1);
+	pthread_mutex_init(&mutex, NULL);
 	sem_init(&empty, 0, NUM_BUFFERS);
 	sem_init(&full, 0, 0);
+
+	pthread_t producerThread, consumerThread;
+
 
 	system("pause");
 	return 0;
