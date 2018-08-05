@@ -80,36 +80,43 @@ void removeFromBuffer(int value)
 	}
 }
 
-void * Produce(pthread_t * thread)
+void * Produce(void * thread)
 {
 	int item = rand() % 100;
-	do 
+	//pthread_t * curr = static_cast<pthread_t*>(thread);
+	for (int i = 0; i < 10; i++)
 	{
 		//produce stuff
 		sem_wait(&empty);
 		pthread_mutex_lock(&mutex);
 		insertIntoBuffer(item);
-		cout << "Produced: " << item << " in thread" << *((int*)(thread));
+		//cout << "Produced: " << item << " in thread" << *((int *)thread) << endl;
+		cout << "Produced: " << item << " in thread" << thread << endl;
 		pthread_mutex_unlock(&mutex);
 		sem_post(&full);
 		
-	} while (true); 
+	} 
+	//pthread_exit(NULL);
+	return Produce;
 }
 
-void * Consume(pthread_t * thread)
+void * Consume(void * thread)
 {
-	int item = rand() % 100;
-	do
+	int item = rand() % 10;
+	//pthread_t * curr = static_cast<pthread_t*>(thread);
+	for (int i = 0; i < 10; i++)
 	{
 		//produce stuff
 		sem_wait(&full);
 		pthread_mutex_lock(&mutex);
-		insertIntoBuffer(item);
-		cout << "Consumed: " << item << " in thread" << *((int*)(thread));
+		removeFromBuffer(item);
+		//cout << "Consumed: " << item << " in thread" << *((int *)thread) << endl;
+		cout << "Consumed: " << item << " in thread" << thread <<  endl;
 		pthread_mutex_unlock(&mutex);
 		sem_post(&empty);
-
-	} while (true);
+	} 
+	//pthread_exit(NULL);
+	return Consume;
 }
 
 int main()
@@ -118,8 +125,25 @@ int main()
 	sem_init(&empty, 0, NUM_BUFFERS);
 	sem_init(&full, 0, 0);
 
-	pthread_t producerThread, consumerThread;
+	//pthread_t producerThread, consumerThread;
+	pthread_t t;
 
+	for (int i = 0; i < 10; i++)
+	{
+		pthread_create(&t, NULL, Produce, (void*)i);
+		//pthread_exit((void *)NULL);
+		cout << "creating producer thread " << i << endl;
+
+		pthread_create(&t, NULL, Consume, (void*)i);
+		//pthread_exit((void *)NULL);
+		cout << "creating consume thread " << i << endl;
+	}	
+
+
+	/*for (int i = 0; i < 10; i++)
+	{
+		cout << rand() % 7 << endl;
+	}*/
 
 	system("pause");
 	return 0;
