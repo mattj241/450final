@@ -4,62 +4,25 @@
 #include <semaphore.h>
 #include <iostream>
 #include <random>
-#include <ctime> 
 using namespace std;
 
 #define NUM_BUFFERS 7
-int buffers[NUM_BUFFERS];
+int buffer[NUM_BUFFERS];
 
-/*
-Good viewing material:
-https://www.youtube.com/watch?v=eRfOrgchJZQ
-
-From textbook:
-
-int n; //where n = # of buffers (7 in our case)
-semaphore mutex = 1;
-semaphore empty = n;
-semaphore full = 0
-
-//Consumer process
-do { 
-wait(full);
-wait(mutex);
-. . .
-remove an item from buffer to next consumed
-. . .
-signal(mutex);
-signal(empty);
-. . .
-consume the item in next consumed 
-. . .
-} while (true);
-
-//Producer process
-do {
-wait(empty);
-wait(mutex);
-. . .
-add next process to buffer
-. . .
-signal(mutex);
-signal(full);
-. . .
-produce the item in next process
-. . .
-} while (true);*/
-
-
-//pthread_t thread1, thread2;
 pthread_mutex_t mutex;
 sem_t empty, full;
 int sizeTracker;
 
+/*
+Description: Inserts the parameter value into the main buffer.
+Pre: Called in the Produce function by a pthread.
+Post: If the buffer was not full, the value is inserted to the main buffer.
+*/
 void insertIntoBuffer(int value)
 {
 	if (sizeTracker < NUM_BUFFERS)
 	{
-		buffers[sizeTracker] = value;
+		buffer[sizeTracker] = value;
 		sizeTracker++;
 	}
 	else
@@ -68,11 +31,17 @@ void insertIntoBuffer(int value)
 	}
 }
 
-void removeFromBuffer(int * value)
+/*
+Description: Removes the parameter value into the main buffer.
+Pre: Called in the Consume function by a pthread.
+Post: If the buffer was not empty, the value is removed to the main buffer.
+*/
+void removeFromBuffer(int index)
 {
 	if (sizeTracker > 0)
 	{
-		*value = buffers[*value - 1];
+		//*value = buffer[*value - 1];
+		buffer[index] = -1;
 		--sizeTracker;
 	}
 	else
@@ -81,6 +50,11 @@ void removeFromBuffer(int * value)
 	}
 }
 
+/*
+Description: A producer thread lives in this function endlessly, simply calls insert
+Pre:
+Post:
+*/
 void * Produce(void * thread)
 {
 	//This random generation code block was made with help from: https://stackoverflow.com/questions/4926622/how-to-generate-different-random-numbers-in-a-loop-in-c
@@ -106,8 +80,6 @@ void * Produce(void * thread)
 		pthread_mutex_unlock(&mutex);
 		sem_post(&full);
 	} 
-	//pthread_exit(NULL);
-	//return Produce;
 }
 
 void * Consume(void * thread)
@@ -119,16 +91,13 @@ void * Consume(void * thread)
 
 	while (true)
 	{
-		//produce stuff
 		sem_wait(&full);
 		pthread_mutex_lock(&mutex);
-		cout << "Consumed: " << buffers[itemIndex] << " in index " << itemIndex << " with thread " << (int)thread << endl;
-		removeFromBuffer(&buffers[itemIndex]);
+		cout << "Consumed: " << buffer[itemIndex] << " in index " << itemIndex << " with thread " << (int)thread << endl;
+		removeFromBuffer(buffer[itemIndex]);
 		pthread_mutex_unlock(&mutex);
 		sem_post(&empty);
 	} 
-	//pthread_exit(NULL);
-	//return Consume;
 }
 
 int main()
@@ -140,15 +109,13 @@ int main()
 
 	for (int i = 0; i < 10; i++)
 	{
-		pthread_t t;
-		pthread_create(&t, NULL, Produce, (void*)(i + 1));
-		//printf("\nCreating Producer %d \n", i + 1);
+		pthread_t Producer;
+		pthread_create(&Producer, NULL, Produce, (void*)(i + 1));
 	}
 	for (int i = 0; i < 10; i++)
 	{
-		pthread_t t;
-		pthread_create(&t, NULL, Consume, (void*)(i + 1));
-		//printf("\nCreating Consumer %d \n", i + 1);
+		pthread_t Consumer;
+		pthread_create(&Consumer, NULL, Consume, (void*)(i + 1));
 	}
 
 	system("pause");
