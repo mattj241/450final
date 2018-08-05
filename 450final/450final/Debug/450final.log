@@ -1,9 +1,8 @@
-﻿Build started 8/5/2018 4:11:37 PM.
+﻿Build started 8/5/2018 5:55:27 PM.
      1>Project "C:\Users\londo\Documents\GitHub\450final\450final\450final\450final.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          D:\DELETE VS JUNK\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt Main_ConsumersAndProducers.cpp
          Main_ConsumersAndProducers.cpp
-     1>c:\users\londo\documents\github\450final\450final\450final\main_consumersandproducers.cpp(138): warning C4101: 'value' : unreferenced local variable
        Link:
          D:\DELETE VS JUNK\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\londo\Documents\GitHub\450final\450final\Debug\450final.exe" /INCREMENTAL /NOLOGO "C:\Users\londo\OneDrive\HOMEWORK\Summer 2018\CIS 450\assignment 2\pthreads-w32-2-9-1-release\Pre-built.2\lib\x86\pthreadVC2.lib" kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\londo\Documents\GitHub\450final\450final\Debug\450final.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\londo\Documents\GitHub\450final\450final\Debug\450final.lib" /MACHINE:X86 Debug\Main_ConsumersAndProducers.obj
          450final.vcxproj -> C:\Users\londo\Documents\GitHub\450final\450final\Debug\450final.exe
@@ -11,4 +10,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:00.62
+Time Elapsed 00:00:00.63

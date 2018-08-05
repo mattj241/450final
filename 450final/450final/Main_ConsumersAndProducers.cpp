@@ -102,10 +102,9 @@ void * Produce(void * thread)
 		sem_wait(&empty);
 		pthread_mutex_lock(&mutex);
 		insertIntoBuffer(item);
-		cout << "Produced: " << item << " in thread " << (int)thread << endl;
+		cout << "Produced: " << item << " into index " << sizeTracker - 1 << " with thread " << (int)thread << endl;
 		pthread_mutex_unlock(&mutex);
 		sem_post(&full);
-		
 	} 
 	//pthread_exit(NULL);
 	//return Produce;
@@ -115,16 +114,16 @@ void * Consume(void * thread)
 {
 	random_device rd;
 	mt19937 gen(rd());
-	uniform_int_distribution<> dis(0, 7);
-	int item = dis(gen);
+	uniform_int_distribution<> dis(0, sizeTracker);
+	int itemIndex = dis(gen);
 
 	while (true)
 	{
 		//produce stuff
 		sem_wait(&full);
 		pthread_mutex_lock(&mutex);
-		removeFromBuffer(&buffers[item]);
-		cout << "Consumed: " << item << " in thread " << (int)thread <<  endl;
+		cout << "Consumed: " << buffers[itemIndex] << " in index " << itemIndex << " with thread " << (int)thread << endl;
+		removeFromBuffer(&buffers[itemIndex]);
 		pthread_mutex_unlock(&mutex);
 		sem_post(&empty);
 	} 
@@ -135,7 +134,6 @@ void * Consume(void * thread)
 int main()
 {
 
-	int value;
 	pthread_mutex_init(&mutex, NULL);
 	sem_init(&empty, 0, NUM_BUFFERS);
 	sem_init(&full, 0, 0);
@@ -153,8 +151,6 @@ int main()
 		//printf("\nCreating Consumer %d \n", i + 1);
 	}
 
-	cout << ' ';
-	/*system("pause");*/
-	getchar();
+	system("pause");
 	return 0;
 } 
