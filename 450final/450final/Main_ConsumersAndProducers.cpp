@@ -3,7 +3,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <iostream>
-#include <stdlib.h>     /* srand, rand */
+#include <random>
 #include <ctime> 
 using namespace std;
 
@@ -50,7 +50,7 @@ produce the item in next process
 } while (true);*/
 
 
-pthread_t thread1, thread2;
+//pthread_t thread1, thread2;
 pthread_mutex_t mutex;
 sem_t empty, full;
 int sizeTracker;
@@ -83,49 +83,59 @@ void removeFromBuffer(int * value)
 
 void * Produce(void * thread)
 {
-	srand((unsigned)time(0));
+	//This random generation code block was made with help from: https://stackoverflow.com/questions/4926622/how-to-generate-different-random-numbers-in-a-loop-in-c
+	// Random seed
+	random_device rd;
 
-	int item = rand() % 7;
+	// Initialize Mersenne Twister pseudo-random number generator
+	mt19937 gen(rd());
+
+	// Generate pseudo-random numbers
+	// uniformly distributed in range (1, 100)
+	uniform_int_distribution<> dis(1, 100);
+	///////////////////////////////////
+
+	int item = dis(gen);
+
 	while (true)
 	{
-		//produce stuff
 		sem_wait(&empty);
 		pthread_mutex_lock(&mutex);
 		insertIntoBuffer(item);
-		//cout << "Produced: " << item << " in thread" << *((int *)thread) << endl;
-		cout << "Produced: " << item << " in thread " << thread << endl;
+		cout << "Produced: " << item << " in thread " << (int)thread << endl;
 		pthread_mutex_unlock(&mutex);
 		sem_post(&full);
 		
 	} 
 	//pthread_exit(NULL);
-	return Produce;
+	//return Produce;
 }
 
 void * Consume(void * thread)
 {
-	srand((unsigned)time(0));
+	random_device rd;
+	mt19937 gen(rd());
+	uniform_int_distribution<> dis(0, 7);
+	int item = dis(gen);
 
-	int item = rand() % 100;
-	//pthread_t * curr = static_cast<pthread_t*>(thread);
 	while (true)
 	{
 		//produce stuff
 		sem_wait(&full);
 		pthread_mutex_lock(&mutex);
-		removeFromBuffer(&item);
-		//cout << "Consumed: " << item << " in thread" << *((int *)thread) << endl;
-		cout << "Consumed: " << item << " in thread " << thread <<  endl;
+		removeFromBuffer(&buffers[item]);
+		cout << "Consumed: " << item << " in thread " << (int)thread <<  endl;
 		pthread_mutex_unlock(&mutex);
 		sem_post(&empty);
 	} 
 	//pthread_exit(NULL);
-	return Consume;
+	//return Consume;
 }
 
 int main()
 {
 
+	int value;
 	pthread_mutex_init(&mutex, NULL);
 	sem_init(&empty, 0, NUM_BUFFERS);
 	sem_init(&full, 0, 0);
@@ -134,16 +144,17 @@ int main()
 	{
 		pthread_t t;
 		pthread_create(&t, NULL, Produce, (void*)(i + 1));
-		//printf("Creating Producer %d \n", i + 1);
+		//printf("\nCreating Producer %d \n", i + 1);
 	}
 	for (int i = 0; i < 10; i++)
 	{
 		pthread_t t;
 		pthread_create(&t, NULL, Consume, (void*)(i + 1));
-		//printf("Creating Consumer %d \n", i + 1);
+		//printf("\nCreating Consumer %d \n", i + 1);
 	}
 
 	cout << ' ';
-	std::getchar();
+	/*system("pause");*/
+	getchar();
 	return 0;
 } 
