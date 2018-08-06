@@ -4,6 +4,7 @@
 #include <semaphore.h>
 #include <iostream>
 #include <random>
+#include <stdio.h>
 using namespace std;
 
 #define NUM_BUFFERS 7
@@ -12,6 +13,10 @@ int buffer[NUM_BUFFERS];
 pthread_mutex_t mutex;
 sem_t empty, full;
 int sizeTracker;
+
+//This random generation code was made with help from: https://stackoverflow.com/questions/4926622/how-to-generate-different-random-numbers-in-a-loop-in-c
+random_device rd;
+mt19937 gen(rd());
 
 /*
 Description: Inserts the parameter value into the main buffer.
@@ -51,24 +56,13 @@ void removeFromBuffer(int index)
 }
 
 /*
-Description: A producer thread lives in this function endlessly, simply calls insert
-Pre:
-Post:
+Description: A producer thread executes this function endlessly, simply calls insertIntoBuffer if it acquires the lock.
+Pre: A producer pthread must be created in the main.
+Post: Endlessy produces items for the buffer.
 */
 void * Produce(void * thread)
 {
-	//This random generation code block was made with help from: https://stackoverflow.com/questions/4926622/how-to-generate-different-random-numbers-in-a-loop-in-c
-	// Random seed
-	random_device rd;
-
-	// Initialize Mersenne Twister pseudo-random number generator
-	mt19937 gen(rd());
-
-	// Generate pseudo-random numbers
-	// uniformly distributed in range (1, 100)
 	uniform_int_distribution<> dis(1, 100);
-	///////////////////////////////////
-
 	int item = dis(gen);
 
 	while (true)
@@ -76,16 +70,19 @@ void * Produce(void * thread)
 		sem_wait(&empty);
 		pthread_mutex_lock(&mutex);
 		insertIntoBuffer(item);
-		cout << "Produced: " << item << " into index " << sizeTracker - 1 << " with thread " << (int)thread << endl;
+		cout << "Produced {" << item << "} into index [" << sizeTracker - 1 << "] with Producer thread " << (int)thread << endl;
 		pthread_mutex_unlock(&mutex);
 		sem_post(&full);
 	} 
 }
 
+/*
+Description: A consumer thread executes this function endlessly, simply calls removeFromBuffer if it acquires the lock.
+Pre: A consumer pthread must be created in the main.
+Post: Endlessy consumes items in the buffer.
+*/
 void * Consume(void * thread)
 {
-	random_device rd;
-	mt19937 gen(rd());
 	uniform_int_distribution<> dis(0, sizeTracker);
 	int itemIndex = dis(gen);
 
@@ -93,11 +90,11 @@ void * Consume(void * thread)
 	{
 		sem_wait(&full);
 		pthread_mutex_lock(&mutex);
-		cout << "Consumed: " << buffer[itemIndex] << " in index " << itemIndex << " with thread " << (int)thread << endl;
+		cout << "Consumed: {" << buffer[itemIndex] << "} in index [" << itemIndex << "] with Consumer thread " << (int)thread << endl;
 		removeFromBuffer(buffer[itemIndex]);
 		pthread_mutex_unlock(&mutex);
 		sem_post(&empty);
-	} 
+	}
 }
 
 int main()
@@ -110,12 +107,12 @@ int main()
 	for (int i = 0; i < 10; i++)
 	{
 		pthread_t Producer;
-		pthread_create(&Producer, NULL, Produce, (void*)(i + 1));
+		pthread_create(&Producer, NULL, &Produce, (void*)(i + 1));
 	}
 	for (int i = 0; i < 10; i++)
 	{
 		pthread_t Consumer;
-		pthread_create(&Consumer, NULL, Consume, (void*)(i + 1));
+		pthread_create(&Consumer, NULL, &Consume, (void*)(i + 1));
 	}
 
 	system("pause");
