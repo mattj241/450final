@@ -15,11 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Pthread_ReferenceProj.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="Main_ConsumersAndProducers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

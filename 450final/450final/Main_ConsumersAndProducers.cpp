@@ -13,6 +13,7 @@ The libraries pthread.h and semaphore.h from POSIX were used.
 #include <semaphore.h>
 #include <iostream>
 #include <random>
+#include <Windows.h>
 using namespace std;
 
 #define NUM_BUFFERS 7 //From assignment specification
@@ -31,11 +32,11 @@ Description: Inserts the parameter value into the main buffer.
 Pre: Called in the Produce function by a pthread.
 Post: If the buffer was not full, the value is inserted to the main buffer.
 */
-void insertIntoBuffer(int value)
+void insertIntoBuffer(int * value)
 {
 	if (sizeTracker < NUM_BUFFERS)
 	{
-		buffer[sizeTracker] = value;
+		buffer[sizeTracker] = *value;
 		sizeTracker++;
 	}
 	else
@@ -45,16 +46,16 @@ void insertIntoBuffer(int value)
 }
 
 /*
-Description: Removes the parameter value into the main buffer.
+Description: Removes the value in the parameter index from main buffer.
 Pre: Called in the Consume function by a pthread.
-Post: If the buffer was not empty, the value is removed to the main buffer.
+Post: If the buffer was not empty, the value is removed in the main buffer.
 */
-void removeFromBuffer(int index)
+void removeFromBuffer(int * index)
 {
 	if (sizeTracker > 0)
 	{
 		//*value = buffer[*value - 1];
-		buffer[index] = -1;
+		buffer[*index] = -1;
 		--sizeTracker;
 	}
 	else
@@ -78,12 +79,13 @@ void * Produce(void * thread)
 	{
 		sem_wait(&empty);				//decrement empty sempahore 
 		pthread_mutex_lock(&mutex);		//acquire lock
-		insertIntoBuffer(item);			//function call
+		insertIntoBuffer(&item);			//function call
 		cout << "Produced {" << item << "} into index ["
 			 << sizeTracker - 1 << "] with Producer thread " 
 			 << (int)thread << endl;
 		pthread_mutex_unlock(&mutex);   //release lock
 		sem_post(&full);				//increment full semaphore
+		Sleep(5);
 	} 
 }
 
@@ -104,9 +106,10 @@ void * Consume(void * thread)
 		cout << "Consumed: {" << buffer[itemIndex] << "} in index ["
 			 << itemIndex << "] with Consumer thread " 
 			 << (int)thread << endl;
-		removeFromBuffer(buffer[itemIndex]);	//function call
+		removeFromBuffer(&buffer[itemIndex]);	//function call
 		pthread_mutex_unlock(&mutex);			//release lock
 		sem_post(&empty);						//increment empty semaphore
+		Sleep(5);
 	}
 }
 

@@ -72,9 +72,6 @@
   <ItemGroup>
     <ClCompile Include="Main_ConsumersAndProducers.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Pthread_ReferenceProj.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
 </Project>
