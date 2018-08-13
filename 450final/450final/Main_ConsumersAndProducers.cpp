@@ -17,10 +17,11 @@ The libraries pthread.h and semaphore.h from POSIX were used.
 using namespace std;
 
 #define NUM_BUFFERS 7 //From assignment specification
-int buffer[NUM_BUFFERS] = {-1};
+//int buffer[NUM_BUFFERS] = { -1, -1, -1, -1, -1, -1, -1 };
+int buffer[NUM_BUFFERS] = { 0, 0, 0, 0, 0, 0, 0 };
+
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-//pthread_mutex_t mutex;
 sem_t empty, full;
 int sizeTracker = 0;
 
@@ -38,12 +39,11 @@ void insertIntoBuffer(int value)
 	if (sizeTracker < NUM_BUFFERS)
 	{
 		buffer[sizeTracker] = value;
-		sizeTracker++;
+		sizeTracker = sizeTracker + 1;
 	}
 	else
 	{
 		cout << "buffer full" << endl;
-		Sleep(10);
 	}
 }
 
@@ -52,12 +52,12 @@ Description: Removes the value in the parameter index from main buffer.
 Pre: Called in the Consume function by a pthread.
 Post: If the buffer was not empty, the value is removed in the main buffer.
 */
-void removeFromBuffer(int * index)
+void removeFromBuffer(int index)
 {
 	if (sizeTracker > 0)
 	{
-		buffer[*index] = -1;
-		--sizeTracker;
+		buffer[index] = -1;
+		sizeTracker = sizeTracker - 1;
 	}
 	else
 	{
@@ -68,12 +68,13 @@ void removeFromBuffer(int * index)
 /*
 Description: A producer thread executes this function endlessly, simply calls insertIntoBuffer if it acquires the lock.
 Pre: A producer pthread must be created in the main.
-Post: Endlessy produces items for the buffer.
+Post: Endlessy produces random items for the buffer.
 */
 void * Produce(void * thread)
 {	
 	//generate a random number 1 - 100 for the buffer
 	uniform_int_distribution<> dis(1, 100);
+
 	while (true)
 	{
 		int item = dis(gen);
@@ -85,9 +86,8 @@ void * Produce(void * thread)
 			 << sizeTracker - 1 << "] with Producer thread " 
 			 << (int)thread << endl;
 		sem_post(&full);				//increment full semaphore
-		//Sleep(5);
+		Sleep(5);
 		pthread_mutex_unlock(&mutex);   //release lock
-
 	} 
 }
 
@@ -100,26 +100,22 @@ void * Consume(void * thread)
 {
 	while (true)
 	{
-		//uniform_int_distribution<> dis(0, sizeTracker);
-		//int itemIndex = dis(gen);
 
 		sem_wait(&full);						//decrement full sempahore 
 		pthread_mutex_lock(&mutex);				//acquire lock
 		cout << "Consumed {" << buffer[sizeTracker - 1] << "} from index ["
 			<< sizeTracker - 1 << "] with Consumer thread "
 			 << (int)thread << endl;
-		removeFromBuffer(&buffer[sizeTracker - 1]);	//function call
+		removeFromBuffer(sizeTracker - 1);	//function call
 		sem_post(&empty);						//increment empty semaphore
-		Sleep(20);
+		Sleep(5);
 		pthread_mutex_unlock(&mutex);			//release lock
-
-
 	}
 }
 
 int main()
 {
-	pthread_mutex_init(&mutex, NULL); //Mutex binary semaphore
+	//pthread_mutex_init(&mutex, NULL); //Mutex binary semaphore
 	sem_init(&empty, 0, NUM_BUFFERS); //Semaphore for amount of empty slots in the buffer (initalized to 7)
 	sem_init(&full, 0, 0); //Semaphore for the amount of full slots in the buffer (initalized to 0)
 
@@ -133,6 +129,7 @@ int main()
 		pthread_create(&Consumer, NULL, &Consume, (void*)(i + 1));
 	}
 
-	system("pause"); //program terminates itself using any other method, we were forced to use system("pause")
+
+	system("pause"); //program terminates itself using any other method, we were forced to use system("pause"). Best way to observe output.
 	return 0;
 } 
