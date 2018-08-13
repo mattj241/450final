@@ -19,8 +19,8 @@ using namespace std;
 #define NUM_BUFFERS 7 //From assignment specification
 int buffer[NUM_BUFFERS] = {-1};
 
-//pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t mutex;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+//pthread_mutex_t mutex;
 sem_t empty, full;
 int sizeTracker = 0;
 
@@ -43,6 +43,7 @@ void insertIntoBuffer(int value)
 	else
 	{
 		cout << "buffer full" << endl;
+		Sleep(10);
 	}
 }
 
@@ -53,7 +54,7 @@ Post: If the buffer was not empty, the value is removed in the main buffer.
 */
 void removeFromBuffer(int * index)
 {
-	if (sizeTracker > 0 || buffer[*index] == -1)
+	if (sizeTracker > 0)
 	{
 		buffer[*index] = -1;
 		--sizeTracker;
@@ -84,7 +85,7 @@ void * Produce(void * thread)
 			 << sizeTracker - 1 << "] with Producer thread " 
 			 << (int)thread << endl;
 		sem_post(&full);				//increment full semaphore
-		Sleep(5);
+		//Sleep(5);
 		pthread_mutex_unlock(&mutex);   //release lock
 
 	} 
@@ -109,7 +110,7 @@ void * Consume(void * thread)
 			 << (int)thread << endl;
 		removeFromBuffer(&buffer[sizeTracker - 1]);	//function call
 		sem_post(&empty);						//increment empty semaphore
-		Sleep(5);
+		Sleep(20);
 		pthread_mutex_unlock(&mutex);			//release lock
 
 
@@ -127,7 +128,7 @@ int main()
 	{
 		pthread_t Producer;
 		pthread_create(&Producer, NULL, &Produce, (void*)(i + 1));
-	
+
 		pthread_t Consumer;
 		pthread_create(&Consumer, NULL, &Consume, (void*)(i + 1));
 	}
